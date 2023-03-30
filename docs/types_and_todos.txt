@@ -1,0 +1,52 @@
+Grass, etc after destruction
+Soul pond (Spa Floor) +
+Entity directions
+Static vs dynamic objects
+NPCs
+Shockwave, False Knight Head
+
+### TBD ###
+//have polygon, but dynamic
+KnightAttack (F)
+
+//unclear identification
+Transition
+HazardRespawn
+SecretArea
+Hittable but not hostile (eg. Sleeping Gruz Mother, Maggots, Nailsmith)
+DreamNailable (eg. Dreamers)
+
+### Segmentation Masks ###
+//U=union, I=Intersection
+
+Darkness (?)
+Static Terrain (U + I?)
+Static Spikes/Hazards (U + I)
+Acid (U? + I)
+Water (U? + I)
+Gate/Removable Barrier (I)
+Breakable (U+I)
+HotSpring (I)
+
+### Object Boxes ###
+//O=Orientable, F=Flippable, D=Destruct after hit
+
+Knight (F)
+Dynamic Hazard/Enemy (O+F)
+GeoToken,
+Trigger
+- Bench
+- Entryway
+- Toll
+- Stag
+- Conversation
+Switch (D)
+Bottle
+GeoStore,
+SoulStore,
+Grass (D)
+Elevator,
+SoulShard,
+MaskShard,
+Lifeblood,
+SpellUpgrade
