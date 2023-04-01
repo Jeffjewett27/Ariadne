@@ -75,15 +75,24 @@ namespace Ariadne
             return path;
         }
 
-        public static List<Vector2> PathsDToVectorPath(PathsD paths)
+        public static List<List<Vector2>> PathsDToVectorPath(PathsD paths)
         {
-            PathD path = paths.First();
-            var pathList = path.Select(p => new Vector2((float)p.x, (float)p.y)).ToList();
-            if (pathList.Count > 0 && pathList[0] != pathList[pathList.Count - 1])
+            var vectorPaths = new List<List<Vector2>>();
+
+            foreach (var path in paths)
             {
-                pathList.Add(pathList[0]);
+                if (Mathf.Abs((float)Clipper.Area(path)) < 0.01)
+                {
+                    Ariadne.MLog($"A path with {Clipper.Area(path)} area is being drawn");
+                }
+                var pathList = path.Select(p => new Vector2((float)p.x, (float)p.y)).ToList();
+                if (pathList.Count > 0 && pathList[0] != pathList[pathList.Count - 1])
+                {
+                    pathList.Add(pathList[0]);
+                }
+                vectorPaths.Add(pathList);
             }
-            return pathList;
+            return vectorPaths;
         }
 
         public static PathsD VectorPathToPathsD(List<Vector2> vectorPath)

@@ -39,7 +39,7 @@ namespace Ariadne
             if (GameManager.instance.IsGameplayScene())
             {
                 hitboxTracker = new GameObject().AddComponent<HitboxTracker>();
-                Ariadne.Instance.Log("Created HitboxTracker");
+                Ariadne.Instance.Log($"Created HitboxTracker for scene {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
             } else
             {
                 Ariadne.Instance.Log("Could not create HitboxTracker in non-gameplay scene");

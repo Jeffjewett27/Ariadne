@@ -12,15 +12,16 @@ namespace Ariadne
         // ReSharper disable once StructCanBeMadeReadOnly
         public struct HitboxType : IComparable<HitboxType>
         {
+            public static readonly HitboxType None = new("None", new Color(0, 0, 0, 0), 0);
             public static readonly HitboxType Knight = new("Knight", Color.yellow, 0);                     // yellow
             public static readonly HitboxType Enemy = new("Enemy", new Color(0.8f, 0, 0), 1);       // red      
             public static readonly HitboxType Attack = new("Attack", Color.cyan, 2);                       // cyan
-            public static readonly HitboxType Terrain = new("Terrain", new Color(0.6f, 0.6f, 0), 3);     // green
+            public static readonly HitboxType Terrain = new("Terrain", new Color(0.6f, 0.6f, 0), 3, 0);     // green
             public static readonly HitboxType Trigger = new("Trigger", new Color(0.5f, 0.5f, 1f), 4); // blue
-            public static readonly HitboxType Breakable = new("Breakable", new Color(1f, 0.75f, 0.8f), 5); // pink
+            public static readonly HitboxType Breakable = new("Breakable", new Color(1f, 0.75f, 0.8f), 5, 1); // pink
             public static readonly HitboxType Transition = new("Transition", new Color(0.0f, 0.0f, 0.5f), 6); // dark blue
             public static readonly HitboxType Switch = new("Switch", new Color(0.8f, 0.8f, 0.8f), 3); // light gray
-            public static readonly HitboxType Gate = new("Gate", new Color(0.5f, 0.5f, 0.5f), 3); // gray
+            public static readonly HitboxType Gate = new("Gate", new Color(0.5f, 0.5f, 0.5f), 3, 2); // gray
             public static readonly HitboxType Bottle = new("GrubBottle", new Color(0.5f, 0.9f, 0.5f), 3); // greenish
             public static readonly HitboxType Bench = new("Bench", new Color(0.2f, 0.2f, 0.2f), 3); // dark gray
             public static readonly HitboxType HazardRespawn = new("HazardRespawn", new Color(0.5f, 0.0f, 0.5f), 3); // purple 
@@ -37,17 +38,34 @@ namespace Ariadne
             public static readonly HitboxType Lifeblood = new("Lifeblood", new Color(0.2f, 0.3f, 0.8f), 3); // light blue
             public static readonly HitboxType HotSpring = new("HotSpring", new Color(0.9f, 0.9f, 0.9f), 3); // whitish
             public static readonly HitboxType Upgrade = new("Upgrade", new Color(0.9f, 0.9f, 0.9f), 3); // whitish
+            public static readonly HitboxType StaticHazard = new("StaticHazard", new Color(0.7f, 0.3f, 0.3f), 3); // orangish
+            public static readonly HitboxType NPC = new("NPC", new Color(0.8f, 0.3f, 0.8f), 3); // purplish
+            public static readonly HitboxType DreamNail = new("DreamNail", new Color(0.8f, 0.8f, 0.9f), 3); // whitish
+            public static readonly HitboxType Shop = new("Shop", new Color(0.4f, 0.8f, 0.9f), 3); // blueish
+            public static readonly HitboxType Item = new("Item", new Color(0.9f, 0.8f, 0.9f), 3); // whitish
+            public static readonly HitboxType Boss = new("Boss", Color.green, 3); // green
 
 
             public readonly Color Color;
             public readonly int Depth;
             public readonly string Name;
+            //if StaticLayer >= 0, then union boundaries and clip higher layers
+            public readonly int StaticLayer;
+
+            private HitboxType(string name, Color color, int depth, int staticLayer)
+            {
+                Color = color;
+                Depth = depth;
+                Name = name;
+                StaticLayer = staticLayer;
+            }
 
             private HitboxType(string name, Color color, int depth)
             {
                 Color = color;
                 Depth = depth;
                 Name = name;
+                StaticLayer = -1;
             }
 
             public int CompareTo(HitboxType other)
@@ -87,10 +105,39 @@ namespace Ariadne
             {HitboxType.Lifeblood, new HashSet<Collider2D>()},
             {HitboxType.HotSpring, new HashSet<Collider2D>()},
             {HitboxType.Upgrade, new HashSet<Collider2D>()},
+            {HitboxType.StaticHazard, new HashSet<Collider2D>()},
+            {HitboxType.NPC, new HashSet<Collider2D>()},
+            {HitboxType.DreamNail, new HashSet<Collider2D>()},
+            {HitboxType.Shop, new HashSet<Collider2D>()},
+            {HitboxType.Item, new HashSet<Collider2D>()},
+            {HitboxType.Boss, new HashSet<Collider2D>()},
         };
+
+        public static readonly Dictionary<string, HitboxType> FsmMappings = new()
+        {
+            { "npc_control", HitboxType.NPC },
+            { "npc_dream_dialogue", HitboxType.DreamNail },
+            { "ghost_npc_dreamnail", HitboxType.DreamNail },
+            { "Bench Control", HitboxType.Bench },
+            { "Stag Bell", HitboxType.Trigger },
+            { "Tram Door", HitboxType.Trigger },
+            { "Switch Control", HitboxType.Switch },
+            { "Call Lever", HitboxType.Switch },
+            { "Shop Region", HitboxType.Shop },
+            { "Chest Control", HitboxType.GeoStore },
+            { "Shiny Control", HitboxType.Item },
+            { "Inspection", HitboxType.Trigger },
+            { "Great Door", HitboxType.Gate },
+            { "Bone Gate", HitboxType.Gate },
+            //{ "Pillar Control", HitboxType.Gate },
+            { "shockwave", HitboxType.Enemy },
+        };
+
+        public HashSet<Collider2D> inactive = new();
 
         public Collider2D closestCollider;
         public List<List<Vector2>> terrainOutlines = new();
+        public List<List<Vector2>> hazardOutlines = new();
 
         public static string debugPattern = null;
         public static int debugDraws = 0;
@@ -102,6 +149,7 @@ namespace Ariadne
             foreach (Collider2D col in Resources.FindObjectsOfTypeAll<Collider2D>())
             {
                 TryAddHitboxes(col);
+                if (!col.isActiveAndEnabled) inactive.Add(col);
             }
 
             foreach (var pair in colliders)
@@ -109,7 +157,11 @@ namespace Ariadne
                 foreach (var collider in pair.Value)
                 {
                     if (!collider.isActiveAndEnabled) continue;
-                    Ariadne.MLog($"[{pair.Key.Name}] Collider '{collider.name}'");
+                    var fsm = collider.gameObject.GetComponents<PlayMakerFSM>();
+                    string fsmStr = string.Join(",", fsm.Select(x => x.FsmName));
+                    var physType = Enum.GetName(typeof(PhysLayers), collider.gameObject.layer);
+                    var parentPhysType = Enum.GetName(typeof(PhysLayers), collider.transform.parent?.gameObject.layer ?? 0);
+                    Ariadne.MLog($"({pair.Key.Name}) '{collider.name}' [{fsmStr}] - {physType} < {parentPhysType}");
                 }
             }
 
@@ -117,14 +169,27 @@ namespace Ariadne
                 .Where(col => col.isActiveAndEnabled)
                 .ToList();
             terrainOutlines = Clipping.UnionAllPaths(terrainPaths);
+
+            var hazardPaths = colliders[HitboxType.StaticHazard]
+                .Where(col => col.isActiveAndEnabled)
+                .ToList();
+            hazardOutlines = Clipping.UnionAllPaths(hazardPaths);
+            hazardOutlines = Clipping.ClipOverlap(terrainOutlines, hazardOutlines);
         }
 
         public void UpdateHitbox(GameObject go)
         {
             foreach (Collider2D col in go.GetComponentsInChildren<Collider2D>(true))
             {
-                var success = TryAddHitboxes(col);
-                if (success) Ariadne.MLog($"[Unknown] Collider '{col.name}'");
+                var hbType = TryAddHitboxes(col);
+                if (!col.isActiveAndEnabled) inactive.Add(col);
+                if (!hbType.Equals(HitboxType.None))
+                {
+                    var fsm = col.gameObject.GetComponents<PlayMakerFSM>();
+                    string fsmStr = string.Join(",", fsm.Select(x => x.FsmName));
+                    var physType = Enum.GetName(typeof(PhysLayers), col.gameObject.layer);
+                    Ariadne.MLog($"({hbType.Name} '{col.name}' [{fsmStr}] - {physType}");
+                }
             }
         }
 
@@ -134,11 +199,11 @@ namespace Ariadne
             return new Vector2((int)Math.Round(result.x), (int)Math.Round(Screen.height - result.y));
         }
 
-        private bool TryAddHitboxes(Collider2D collider2D)
+        private HitboxType TryAddHitboxes(Collider2D collider2D)
         {
             if (collider2D == null)
             {
-                return false;
+                return HitboxType.None;
             }
 
             if (debugPattern != null && collider2D.name.Contains(debugPattern))
@@ -146,35 +211,46 @@ namespace Ariadne
                 Ariadne.MLog($"Debugging initializer: {collider2D.name}");
             }
 
+            HitboxType hbType = HitboxType.None;
+
             if (collider2D is BoxCollider2D or PolygonCollider2D or EdgeCollider2D or CircleCollider2D)
             {
                 GameObject go = collider2D.gameObject;
                 if (collider2D.GetComponent<DamageHero>()
                     || collider2D.gameObject.LocateMyFSM("damages_hero"))
                 {
-                    colliders[HitboxType.Enemy].Add(collider2D);
+                    if (go.name.Contains("Spike") && go.GetComponent<TinkEffect>() != null
+                        || go.name.Contains("Acid"))
+                        hbType = HitboxType.StaticHazard;
+                    else
+                        hbType = HitboxType.Enemy;
                 }
                 else if (go.GetComponent<HealthManager>()
                     || go.LocateMyFSM("health_manager_enemy")
                     || go.LocateMyFSM("health_manager"))
                 {
-                    colliders[HitboxType.Other].Add(collider2D);
+                    hbType = HitboxType.Boss;
                 }
                 else if (go.layer == (int)PhysLayers.TERRAIN)
                 {
                     if (go.GetComponent<GeoControl>() != null)
-                        colliders[HitboxType.GeoStore].Add(collider2D);
+                        hbType = HitboxType.GeoStore;
                     else if (go.GetComponent<HealthCocoon>() != null)
                     {
-                        colliders[HitboxType.Lifeblood].Add(collider2D);
+                        hbType = HitboxType.Lifeblood;
+                    }
+                    else if (go.name.StartsWith("Spa Floor"))
+                    {
+                        hbType = HitboxType.HotSpring;
                     }
                     else if (go.name.Contains("Break")
                         || go.name.Contains("Collapse")
                         || go.name.StartsWith("Loose Floor")
                         || go.name.StartsWith("Quake Floor")
                         || go.GetComponent<Breakable>() != null)
-                        colliders[HitboxType.Breakable].Add(collider2D);
-                    else if (collider2D.name.Contains("Gate")
+                        hbType = HitboxType.Breakable;
+                    else if (
+                        collider2D.name.Contains("Gate")
                         || collider2D.name.StartsWith("sliding_wall")
                         || collider2D.name.StartsWith("Bottom Block")
                         || collider2D.name.Contains("Solid")
@@ -182,108 +258,122 @@ namespace Ariadne
                         || collider2D.name.StartsWith("Inactive Block")
                         || collider2D.name.StartsWith("Bottle Physical")
                         || collider2D.name.StartsWith("Rising Pillar")
+                        || collider2D.name.StartsWith("Terrain Block")
                         || go.GetComponent<SlopePlat>() != null
+                        || go.name.Contains("Acid Blocker")
+                        || go.GetComponent<PlayMakerFSM>() != null
                         //TODO find common denominator
                         )
                     {
                         if (collider2D.isTrigger)
-                            colliders[HitboxType.Switch].Add(collider2D);
+                            hbType = HitboxType.Switch;
                         else
-                            colliders[HitboxType.Gate].Add(collider2D);
+                            hbType = HitboxType.Gate;
                     }
                     else if (go.tag == "Platform" || collider2D.name.StartsWith("elev_main"))
                     {
-                        colliders[HitboxType.Elevator].Add(collider2D);
+                        hbType = HitboxType.Elevator;
                     }
+                    else if (collider2D.isTrigger)
+                        hbType = HitboxType.Other;
                     else
-                        colliders[HitboxType.Terrain].Add(collider2D);
+                        hbType = HitboxType.Terrain;
                 }
                 else if (go == HeroController.instance?.gameObject && !collider2D.isTrigger)
                 {
-                    colliders[HitboxType.Knight].Add(collider2D);
+                    hbType = HitboxType.Knight;
                 }
                 else if (go.GetComponent<DamageEnemies>() || go.LocateMyFSM("damages_enemy") || go.name == "Damager" && go.LocateMyFSM("Damage"))
                 {
-                    colliders[HitboxType.Attack].Add(collider2D);
+                    hbType = HitboxType.Attack;
                 }
                 else if (collider2D.isTrigger && collider2D.GetComponent<HazardRespawnTrigger>())
                 {
-                    colliders[HitboxType.HazardRespawn].Add(collider2D);
+                    hbType = HitboxType.HazardRespawn;
                 }
                 else if (collider2D.isTrigger && collider2D.GetComponent<TransitionPoint>())
                 {
-                    colliders[HitboxType.Transition].Add(collider2D);
+                    hbType = HitboxType.Transition;
                 }
                 else if (collider2D.GetComponent<Breakable>() != null)
                 {
                     NonBouncer bounce = collider2D.GetComponent<NonBouncer>();
                     if (bounce == null || !bounce.active)
                     {
-                        colliders[HitboxType.Trigger].Add(collider2D);
+                        hbType = HitboxType.Trigger;
                     }
                 }
-                else if (collider2D.GetComponent<RestBench>() != null)
+                //else if (collider2D.GetComponent<RestBench>() != null)
+                //{
+                //    hbType = HitboxType.Bench;
+                //}
+                else if (collider2D.GetComponent<ScuttlerControl>() != null)
                 {
-                    colliders[HitboxType.Bench].Add(collider2D);
+                    hbType = HitboxType.Lifeblood;
                 }
                 else if (collider2D.name.StartsWith("Grub Bottle"))
                 {
-                    colliders[HitboxType.Bottle].Add(collider2D);
-                }
-                else if (collider2D.name.StartsWith("Spa Floor"))
-                {
-                    colliders[HitboxType.HotSpring].Add(collider2D);
+                    hbType = HitboxType.Bottle;
                 }
                 else if (collider2D.name.Contains("Geo"))
                 {
                     if (go.GetComponent<GeoControl>() != null)
-                        colliders[HitboxType.GeoStore].Add(collider2D);
+                        hbType = HitboxType.GeoStore;
                     else
-                        colliders[HitboxType.GeoToken].Add(collider2D);
+                        hbType = HitboxType.GeoToken;
                 }
                 else if (collider2D.name.Contains("Soul"))
                 {
                     //var components = go.GetComponents(typeof(Component));
                     //Ariadne.MLog(components.ToString());
                     if (go.GetComponent<PersistentIntItem>() != null)
-                        colliders[HitboxType.SoulStore].Add(collider2D);
+                        hbType = HitboxType.SoulStore;
                     else
-                        colliders[HitboxType.Other].Add(collider2D);
+                        hbType = HitboxType.Other;
                 }
                 else if (collider2D.name.ToLower().Contains("grass"))
                 {
-                    colliders[HitboxType.Grass].Add(collider2D);
+                    hbType = HitboxType.Grass;
                 }
                 else if (go.GetComponent<PersistentBoolItem>() != null)
                 {
                     if (collider2D.name.StartsWith("Heart Piece"))
                     {
-                        colliders[HitboxType.MaskShard].Add(collider2D);
+                        hbType = HitboxType.MaskShard;
                     }
                     else if (collider2D.name.StartsWith("Vessel Fragment"))
                     {
-                        colliders[HitboxType.SoulShard].Add(collider2D);
+                        hbType = HitboxType.SoulShard;
                     }
                     else if (collider2D.name.Contains("Mask"))
                     {
-                        colliders[HitboxType.SecretArea].Add(collider2D);
+                        hbType = HitboxType.SecretArea;
                     }
                 }
-                else if (collider2D.name.StartsWith("Lift Call Lever"))
+                else if (go.GetComponent<SpriteRenderer>()?.sprite?.texture?.name.StartsWith("fireball_collect") ?? false )
                 {
-                    colliders[HitboxType.Switch].Add(collider2D);
+                    hbType = HitboxType.Upgrade;
                 }
-                else if (go.GetComponent<SpriteRenderer>()?.sprite.texture.name.StartsWith("fireball_collect") ?? false )
+
+                foreach (var fsm in go.GetComponents<PlayMakerFSM>())
                 {
-                    colliders[HitboxType.Upgrade].Add(collider2D);
+                    HitboxType fsmType;
+                    if (FsmMappings.TryGetValue(fsm.FsmName, out fsmType))
+                        hbType = fsmType;
                 }
-                else if (Ariadne.settings.ShowHitBoxes == ShowHitbox.Verbose)
+
+                if (hbType.Equals(HitboxType.None) && Ariadne.settings.ShowHitBoxes >= ShowHitbox.VerboseLogs)
                 {
-                    colliders[HitboxType.Other].Add(collider2D);
+                    hbType = HitboxType.Other;
                 }
             }
 
-            return true;
+            if (colliders.ContainsKey(hbType))
+            {
+                colliders[hbType].Add(collider2D);
+            }
+
+            return hbType;
         }
 
         private void OnGUI()
@@ -301,6 +391,9 @@ namespace Ariadne
             foreach (var pair in colliders)
             {
                 if (pair.Key.Equals(HitboxType.Terrain)) continue;
+                if (pair.Key.Equals(HitboxType.StaticHazard)) continue;
+                if (Ariadne.settings.ShowHitBoxes < ShowHitbox.Verbose 
+                    && pair.Key.Equals(HitboxType.Other)) continue;
                 foreach (Collider2D collider2D in pair.Value)
                 {
                     var hbtype = collider2D == closestCollider ? HitboxType.Highlighted : pair.Key;
@@ -313,6 +406,11 @@ namespace Ariadne
                 DrawWorldPointSequence(path, camera, HitboxType.Highlighted, lineWidth);
             }
 
+            foreach (var path in hazardOutlines)
+            {
+                DrawWorldPointSequence(path, camera, HitboxType.StaticHazard, lineWidth);
+            }
+
         }
 
         private void DrawHitbox(Camera camera, Collider2D collider2D, HitboxType hitboxType, float lineWidth)
@@ -320,6 +418,12 @@ namespace Ariadne
             if (collider2D == null || !collider2D.isActiveAndEnabled)
             {
                 return;
+            }
+
+            if (inactive.Contains(collider2D))
+            {
+                inactive.Remove(collider2D);
+                Ariadne.MLog($"No longer inactive: [{hitboxType}] {collider2D.name}");
             }
 
             if (debugDraws > 0 && debugPattern != null && collider2D.name.Contains(debugPattern))

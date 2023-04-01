@@ -10,12 +10,13 @@ namespace Ariadne
     {
         None,
         Show,
-        Verbose
+        VerboseLogs,
+        Verbose,
     }
 
     public class GlobalSettings
     {
-        public ShowHitbox ShowHitBoxes = ShowHitbox.Verbose;
+        public ShowHitbox ShowHitBoxes = ShowHitbox.VerboseLogs;
 
         public bool TrackHitboxes = true;
 

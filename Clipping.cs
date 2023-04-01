@@ -123,7 +123,40 @@ namespace Ariadne
                     }
                 }
             }
-            return unionFinder.GetDisjointObjects().Select(ColliderPaths.PathsDToVectorPath).ToList();
+            return unionFinder.GetDisjointObjects().SelectMany(ColliderPaths.PathsDToVectorPath).ToList();
+        }
+
+        public static List<List<Vector2>> ClipOverlap(
+            List<List<Vector2>> topLayer, 
+            List<List<Vector2>> lowerLayer)
+        {
+            var topPaths = topLayer
+                .Select(ColliderPaths.VectorPathToPathsD)
+                .ToList();
+
+            var lowerPaths = lowerLayer
+                .Select(ColliderPaths.VectorPathToPathsD)
+                .ToList();
+
+
+            for (int i = 0; i < lowerPaths.Count; i++ )
+            {
+                foreach (var tpath in topPaths)
+                {
+                    var diff = Clipper.Difference(
+                        lowerPaths[i],
+                        tpath,
+                        FillRule.NonZero,
+                        2);
+                    if (Clipper.Area(diff) < 0.001)
+                    {
+                        Ariadne.MLog($"Box completely removed: {lowerPaths[i].ToString()}");
+                    }
+                    lowerPaths[i] = diff;
+                }
+            }
+
+            return lowerPaths.SelectMany(ColliderPaths.PathsDToVectorPath).ToList();
         }
 
         private static List<PathsD> GetTestPaths()
