@@ -8,7 +8,9 @@ namespace Ariadne
     public class HitboxTrackerManager
     {
         public static bool TrackingState { get; private set; }
-        public HitboxTracker hitboxTracker;
+
+        public HitboxTracker HitboxTracker { get; private set; }
+        public HitboxRenderer HitboxRenderer { get; private set; }
 
         public void Load()
         {
@@ -38,7 +40,9 @@ namespace Ariadne
             DestroyHitboxRender();
             if (GameManager.instance.IsGameplayScene())
             {
-                hitboxTracker = new GameObject().AddComponent<HitboxTracker>();
+                var hitboxGO = new GameObject();
+                HitboxTracker = hitboxGO.AddComponent<HitboxTracker>();
+                HitboxRenderer = hitboxGO.AddComponent<HitboxRenderer>();
                 Ariadne.Instance.Log($"Created HitboxTracker for scene {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
             } else
             {
@@ -48,18 +52,18 @@ namespace Ariadne
 
         private void DestroyHitboxRender()
         {
-            if (hitboxTracker != null)
+            if (HitboxTracker != null)
             {
-                Object.Destroy(hitboxTracker);
-                hitboxTracker = null;
+                Object.Destroy(HitboxTracker);
+                HitboxTracker = null;
             }
         }
 
         private void UpdateHitboxRender(GameObject go)
         {
-            if (hitboxTracker != null)
+            if (HitboxTracker != null)
             {
-                hitboxTracker.UpdateHitbox(go);
+                HitboxTracker.UpdateHitbox(go);
             }
         }
     }

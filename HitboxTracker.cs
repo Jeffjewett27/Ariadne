@@ -16,7 +16,7 @@ namespace Ariadne
             public static readonly HitboxType Knight = new("Knight", Color.yellow, 0);                     // yellow
             public static readonly HitboxType Enemy = new("Enemy", new Color(0.8f, 0, 0), 1);       // red      
             public static readonly HitboxType Attack = new("Attack", Color.cyan, 2);                       // cyan
-            public static readonly HitboxType Terrain = new("Terrain", new Color(0.6f, 0.6f, 0), 3, 0);     // green
+            public static readonly HitboxType Terrain = new("Terrain", new Color(1f, 1f, 1f), 3, 0);     // green
             public static readonly HitboxType Trigger = new("Trigger", new Color(0.5f, 0.5f, 1f), 4); // blue
             public static readonly HitboxType Breakable = new("Breakable", new Color(1f, 0.75f, 0.8f), 5, 1); // pink
             public static readonly HitboxType Transition = new("Transition", new Color(0.0f, 0.0f, 0.5f), 6); // dark blue
@@ -135,14 +135,12 @@ namespace Ariadne
 
         public HashSet<Collider2D> inactive = new();
 
-        public Collider2D closestCollider;
+        public Collider2D ClosestCollider { get; private set; }
         public List<List<Vector2>> terrainOutlines = new();
         public List<List<Vector2>> hazardOutlines = new();
 
         public static string debugPattern = null;
         public static int debugDraws = 0;
-
-        public static float LineWidth => Math.Max(0.6f, Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
 
         private void Start()
         {
@@ -191,12 +189,6 @@ namespace Ariadne
                     Ariadne.MLog($"({hbType.Name} '{col.name}' [{fsmStr}] - {physType}");
                 }
             }
-        }
-
-        private Vector2 LocalToScreenPoint(Camera camera, Collider2D collider2D, Vector2 point)
-        {
-            Vector2 result = camera.WorldToScreenPoint((Vector2)collider2D.transform.TransformPoint(point + collider2D.offset));
-            return new Vector2((int)Math.Round(result.x), (int)Math.Round(Screen.height - result.y));
         }
 
         private HitboxType TryAddHitboxes(Collider2D collider2D)
@@ -376,173 +368,71 @@ namespace Ariadne
             return hbType;
         }
 
-        private void OnGUI()
-        {
-            if (Event.current?.type != EventType.Repaint || Camera.main == null || GameManager.instance == null || GameManager.instance.isPaused)
+        private void FixedUpdate()
+        {   
+            var oldClosest = ClosestCollider;
+            ClosestCollider = GetClosestCollider();
+            if (ClosestCollider != null && oldClosest != ClosestCollider)
             {
-                return;
+                Ariadne.MLog($"New closest collider: {ClosestCollider.name}");
             }
-
-            closestCollider = ClosestCollider();
-
-            GUI.depth = int.MaxValue;
-            Camera camera = Camera.main;
-            float lineWidth = LineWidth;
-            foreach (var pair in colliders)
-            {
-                if (pair.Key.Equals(HitboxType.Terrain)) continue;
-                if (pair.Key.Equals(HitboxType.StaticHazard)) continue;
-                if (Ariadne.settings.ShowHitBoxes < ShowHitbox.Verbose 
-                    && pair.Key.Equals(HitboxType.Other)) continue;
-                foreach (Collider2D collider2D in pair.Value)
-                {
-                    var hbtype = collider2D == closestCollider ? HitboxType.Highlighted : pair.Key;
-                    DrawHitbox(camera, collider2D, hbtype, lineWidth);
-                }
-            }
-
-            foreach (var path in terrainOutlines)
-            {
-                DrawWorldPointSequence(path, camera, HitboxType.Highlighted, lineWidth);
-            }
-
-            foreach (var path in hazardOutlines)
-            {
-                DrawWorldPointSequence(path, camera, HitboxType.StaticHazard, lineWidth);
-            }
-
         }
 
-        private void DrawHitbox(Camera camera, Collider2D collider2D, HitboxType hitboxType, float lineWidth)
-        {
-            if (collider2D == null || !collider2D.isActiveAndEnabled)
-            {
-                return;
-            }
+        //private void OnGUI()
+        //{
+        //    if (Event.current?.type != EventType.Repaint || Camera.main == null
+        //        || GameManager.instance == null || GameManager.instance.isPaused) return;
 
-            if (inactive.Contains(collider2D))
-            {
-                inactive.Remove(collider2D);
-                Ariadne.MLog($"No longer inactive: [{hitboxType}] {collider2D.name}");
-            }
+            
 
-            if (debugDraws > 0 && debugPattern != null && collider2D.name.Contains(debugPattern))
-            {
-                debugDraws--;
-                Ariadne.MLog($"Debugging draw: {collider2D.name}");
-            }
-
-            int origDepth = GUI.depth;
-            GUI.depth = hitboxType.Depth;
-            if (collider2D is BoxCollider2D or EdgeCollider2D or PolygonCollider2D)
-            {
-                switch (collider2D)
-                {
-                    case BoxCollider2D boxCollider2D:
-                        Vector2 halfSize = boxCollider2D.size / 2f;
-                        Vector2 topLeft = new(-halfSize.x, halfSize.y);
-                        Vector2 topRight = halfSize;
-                        Vector2 bottomRight = new(halfSize.x, -halfSize.y);
-                        Vector2 bottomLeft = -halfSize;
-                        List<Vector2> boxPoints = new List<Vector2>
-                        {
-                            topLeft, topRight, bottomRight, bottomLeft, topLeft
-                        };
-                        DrawPointSequence(boxPoints, camera, collider2D, hitboxType, lineWidth);
-                        break;
-                    case EdgeCollider2D edgeCollider2D:
-                        DrawPointSequence(new(edgeCollider2D.points), camera, collider2D, hitboxType, lineWidth);
-                        break;
-                    case PolygonCollider2D polygonCollider2D:
-                        for (int i = 0; i < polygonCollider2D.pathCount; i++)
-                        {
-                            List<Vector2> polygonPoints = new(polygonCollider2D.GetPath(i));
-                            if (polygonPoints.Count > 0)
-                            {
-                                polygonPoints.Add(polygonPoints[0]);
-                            }
-                            DrawPointSequence(polygonPoints, camera, collider2D, hitboxType, lineWidth);
-                        }
-                        break;
-                }
-            }
-            else if (collider2D is CircleCollider2D circleCollider2D)
-            {
-                Vector2 center = LocalToScreenPoint(camera, collider2D, Vector2.zero);
-                Vector2 right = LocalToScreenPoint(camera, collider2D, Vector2.right * circleCollider2D.radius);
-                int radius = (int)Math.Round(Vector2.Distance(center, right));
-                Drawing.DrawCircle(center, radius, hitboxType.Color, lineWidth, true, Mathf.Clamp(radius / 16, 4, 32));
-            }
-
-            //if (hitboxType.Equals(HitboxType.SecretArea))
+            //GUI.depth = int.MaxValue;
+            //Camera camera = Camera.main;
+            //float lineWidth = LineWidth;
+            //foreach (var pair in colliders)
             //{
-            //    foreach (var sr in collider2D.gameObject.GetComponentsInChildren<SpriteRenderer>())
+            //    if (pair.Key.Equals(HitboxType.Terrain)) continue;
+            //    if (pair.Key.Equals(HitboxType.StaticHazard)) continue;
+            //    if (Ariadne.settings.ShowHitBoxes < ShowHitbox.Verbose 
+            //        && pair.Key.Equals(HitboxType.Other)) continue;
+            //    foreach (Collider2D collider2D in pair.Value)
             //    {
-            //        var bounds = sr.bounds;
-            //        Vector2 extent = (Vector2)bounds.extents;
-            //        Vector2 center = (Vector2)bounds.center;
-            //        Vector2 topLeft = new(-extent.x, extent.y);
-            //        Vector2 topRight = extent;
-            //        Vector2 bottomRight = new(extent.x, -extent.y);
-            //        Vector2 bottomLeft = -extent;
-            //        List<Vector2> boxPoints = new List<Vector2>
-            //                {
-            //                    topLeft + center , topRight + center, bottomRight + center, bottomLeft + center, topLeft + center
-            //                };
-            //        if (Ariadne.settings.DebugAB)
-            //            DrawWorldPointSequence(boxPoints, camera, hitboxType, lineWidth);
-            //        else
-            //            DrawPointSequence(boxPoints, camera, collider2D, hitboxType, lineWidth);
+            //        var hbtype = collider2D == ClosestCollider ? HitboxType.Highlighted : pair.Key;
+            //        DrawHitbox(camera, collider2D, hbtype, lineWidth);
             //    }
-                //var sr = collider2D.gameObject.GetComponent<SpriteRenderer>();
             //}
 
-            GUI.depth = origDepth;
-        }
+            //foreach (var path in terrainOutlines)
+            //{
+            //    DrawWorldPointSequence(path, camera, HitboxType.Highlighted, lineWidth);
+            //}
 
-        private void DrawPointSequence(List<Vector2> points, Camera camera, Collider2D collider2D, HitboxType hitboxType, float lineWidth)
-        {
-            for (int i = 0; i < points.Count - 1; i++)
-            {
-                Vector2 pointA = LocalToScreenPoint(camera, collider2D, points[i]);
-                Vector2 pointB = LocalToScreenPoint(camera, collider2D, points[i + 1]);
-                Drawing.DrawLine(pointA, pointB, hitboxType.Color, lineWidth, true);
-            }
-        }
+            //foreach (var path in hazardOutlines)
+            //{
+            //    DrawWorldPointSequence(path, camera, HitboxType.StaticHazard, lineWidth);
+            //}
 
-        private void DrawWorldPointSequence(List<Vector2> points, Camera camera, HitboxType hitboxType, float lineWidth)
-        {
-            for (int i = 0; i < points.Count - 1; i++)
-            {
-                Vector2 pointA = camera.WorldToScreenPoint(points[i]);
-                pointA.y = Screen.height - pointA.y;
-                Vector2 pointB = camera.WorldToScreenPoint(points[i+1]);
-                pointB.y = Screen.height - pointB.y;
-                Drawing.DrawLine(pointA, pointB, hitboxType.Color, lineWidth, true);
-            }
-        }
+        //}
 
-        private Collider2D ClosestCollider()
+        private Collider2D GetClosestCollider()
         {
             var players = colliders[HitboxType.Knight].ToList();
             var player = players.Count > 0 ? players[0] : null;
 
-            if (player == null) {
+            if (player == null)
+            {
                 Ariadne.MLog("No player found");
-                return null; 
+                return null;
             }
 
             Collider2D closest = null;
             float closestDist = float.PositiveInfinity;
             foreach (var pair in colliders)
             {
-                if (pair.Key.Equals(HitboxType.Knight) || !pair.Key.Equals(HitboxType.Terrain))
-                {
-                    continue;
-                }
+                if (pair.Key.Equals(HitboxType.Knight)
+                    || pair.Key.Equals(HitboxType.Other)) continue;
                 foreach (Collider2D collider2D in pair.Value)
                 {
-                    if (collider2D == null || !collider2D.isActiveAndEnabled || collider2D.isTrigger) continue;
+                    if (collider2D == null || !collider2D.isActiveAndEnabled) continue;
                     var dist = collider2D.Distance(player).distance;
                     if (dist < closestDist)
                     {
