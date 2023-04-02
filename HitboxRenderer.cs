@@ -36,28 +36,27 @@ namespace Ariadne
             GUI.depth = int.MaxValue;
             Camera camera = Camera.main;
             float lineWidth = LineWidth;
-            foreach (var pair in hitboxTracker.colliders)
+            foreach (var pair in hitboxTracker.ColliderLayers)
             {
-                if (pair.Key.Equals(HitboxType.Terrain)
-                    || pair.Key.Equals(HitboxType.StaticHazard)
+                if (pair.Key == HitboxType.Terrain
+                    || pair.Key == HitboxType.StaticHazard
                     || (Ariadne.settings.ShowHitBoxes < ShowHitbox.Verbose 
-                        && pair.Key.Equals(HitboxType.Other))) 
+                        && pair.Key == HitboxType.Other)) 
                     continue;
                 foreach (Collider2D collider2D in pair.Value)
                 {
-                    var hbtype = collider2D == hitboxTracker.ClosestCollider ? HitboxType.Highlighted : pair.Key;
-                    DrawHitbox(camera, collider2D, hbtype, lineWidth);
+                    DrawHitbox(camera, collider2D, pair.Key, lineWidth);
                 }
             }
 
             foreach (var path in hitboxTracker.terrainOutlines)
             {
-                DrawWorldPointSequence(path, camera, HitboxType.Terrain.Color, lineWidth);
+                DrawWorldPointSequence(path, camera, HitboxType.Terrain.GetColor(), lineWidth);
             }
 
             foreach (var path in hitboxTracker.hazardOutlines)
             {
-                DrawWorldPointSequence(path, camera, HitboxType.StaticHazard.Color, lineWidth);
+                DrawWorldPointSequence(path, camera, HitboxType.StaticHazard.GetColor(), lineWidth);
             }
 
         }
@@ -66,9 +65,9 @@ namespace Ariadne
         {
             if (collider2D == null || !collider2D.isActiveAndEnabled) return;
             int origDepth = GUI.depth;
-            GUI.depth = hitboxType.Depth;
+            GUI.depth = hitboxType.GetDepth();
 
-            var hbColor = hitboxType.Color;
+            var hbColor = hitboxType.GetColor();
             if (collider2D == hitboxTracker.ClosestCollider)
             {
                 hbColor = new Color(1 - hbColor.r, 1 - hbColor.g, 1 - hbColor.b);
