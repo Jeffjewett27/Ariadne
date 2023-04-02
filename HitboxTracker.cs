@@ -36,7 +36,7 @@ namespace Ariadne
             var layers = new SortedDictionary<HitboxType, ColliderLayer>();
             foreach (var hbtype in (HitboxType[])Enum.GetValues(typeof(HitboxType)))
             {
-                layers[hbtype] = new ColliderLayer(hbtype);
+                layers[hbtype] = ColliderLayer.From(hbtype, layers.Values);
             }
             return layers;
         }
@@ -58,29 +58,29 @@ namespace Ariadne
                 if (!col.isActiveAndEnabled) inactive.Add(col);
             }
 
-            foreach (var pair in ColliderLayers)
-            {
-                foreach (var collider in pair.Value)
-                {
-                    if (!collider.isActiveAndEnabled) continue;
-                    var fsm = collider.gameObject.GetComponents<PlayMakerFSM>();
-                    string fsmStr = string.Join(",", fsm.Select(x => x.FsmName));
-                    var physType = Enum.GetName(typeof(PhysLayers), collider.gameObject.layer);
-                    var parentPhysType = Enum.GetName(typeof(PhysLayers), collider.transform.parent?.gameObject.layer ?? 0);
-                    Ariadne.MLog($"({pair.Key.GetName()}) '{collider.name}' [{fsmStr}] - {physType} < {parentPhysType}");
-                }
-            }
+            //foreach (var pair in ColliderLayers)
+            //{
+            //    foreach (var collider in pair.Value.Colliders)
+            //    {
+            //        if (!collider.isActiveAndEnabled) continue;
+            //        var fsm = collider.gameObject.GetComponents<PlayMakerFSM>();
+            //        string fsmStr = string.Join(",", fsm.Select(x => x.FsmName));
+            //        var physType = Enum.GetName(typeof(PhysLayers), collider.gameObject.layer);
+            //        var parentPhysType = Enum.GetName(typeof(PhysLayers), collider.transform.parent?.gameObject.layer ?? 0);
+            //        Ariadne.MLog($"({pair.Key.GetName()}) '{collider.name}' [{fsmStr}] - {physType} < {parentPhysType}");
+            //    }
+            //}
 
-            var terrainPaths = ColliderLayers[HitboxType.Terrain]
-                .Where(col => col.isActiveAndEnabled)
-                .ToList();
-            terrainOutlines = Clipping.UnionAllPaths(terrainPaths);
+            //var terrainPaths = ColliderLayers[HitboxType.Terrain]
+            //    .Where(col => col.isActiveAndEnabled)
+            //    .ToList();
+            //terrainOutlines = Clipping.UnionAllPaths(terrainPaths);
 
-            var hazardPaths = ColliderLayers[HitboxType.StaticHazard]
-                .Where(col => col.isActiveAndEnabled)
-                .ToList();
-            hazardOutlines = Clipping.UnionAllPaths(hazardPaths);
-            hazardOutlines = Clipping.ClipOverlap(terrainOutlines, hazardOutlines);
+            //var hazardPaths = ColliderLayers[HitboxType.StaticHazard]
+            //    .Where(col => col.isActiveAndEnabled)
+            //    .ToList();
+            //hazardOutlines = Clipping.UnionAllPaths(hazardPaths);
+            //hazardOutlines = Clipping.ClipOverlap(terrainOutlines, hazardOutlines);
         }
 
         public void UpdateHitbox(GameObject go)
@@ -89,13 +89,13 @@ namespace Ariadne
             {
                 var hbType = TryAddHitboxes(col);
                 if (!col.isActiveAndEnabled) inactive.Add(col);
-                if (!hbType.Equals(HitboxType.None))
-                {
-                    var fsm = col.gameObject.GetComponents<PlayMakerFSM>();
-                    string fsmStr = string.Join(",", fsm.Select(x => x.FsmName));
-                    var physType = Enum.GetName(typeof(PhysLayers), col.gameObject.layer);
-                    Ariadne.MLog($"({hbType.GetName()} '{col.name}' [{fsmStr}] - {physType}");
-                }
+                //if (!hbType.Equals(HitboxType.None))
+                //{
+                //    var fsm = col.gameObject.GetComponents<PlayMakerFSM>();
+                //    string fsmStr = string.Join(",", fsm.Select(x => x.FsmName));
+                //    var physType = Enum.GetName(typeof(PhysLayers), col.gameObject.layer);
+                //    Ariadne.MLog($"({hbType.GetName()} '{col.name}' [{fsmStr}] - {physType}");
+                //}
             }
         }
 
@@ -288,12 +288,12 @@ namespace Ariadne
 
         private Collider2D GetClosestCollider()
         {
-            var players = ColliderLayers[HitboxType.Knight].ToList();
+            var players = ColliderLayers[HitboxType.Knight].Colliders;
             var player = players.Count > 0 ? players[0] : null;
 
             if (player == null)
             {
-                Ariadne.MLog("No player found");
+                //Ariadne.MLog("No player found");
                 return null;
             }
 
@@ -304,8 +304,8 @@ namespace Ariadne
                 if (pair.Key == HitboxType.Knight
                     || pair.Key == HitboxType.Other
                     || pair.Key == HitboxType.Attack
-                    || pair.Key == HitboxType.Terrain) continue;
-                foreach (Collider2D collider2D in pair.Value)
+                    || pair.Key != HitboxType.Terrain) continue;
+                foreach (Collider2D collider2D in pair.Value.Colliders)
                 {
                     if (collider2D == null || !collider2D.isActiveAndEnabled) continue;
                     var dist = collider2D.Distance(player).distance;

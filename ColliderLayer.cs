@@ -5,42 +5,54 @@ using UnityEngine;
 
 namespace Ariadne
 {
-    public class ColliderLayer : IEnumerable<Collider2D>
+    public class ColliderLayer : IEnumerable<List<Vector2>>
     {
         public Color Color { get; }
         public int Depth { get; }
         public string Name { get; }
-
-        private List<Collider2D> colliders;
-
-        public ColliderLayer(Color color, int depth, string name)
-        {
-            Color = color;
-            Depth = depth;
-            Name = name;
-        }
+        public ShowHitbox MinShowLevel { get; }
+        public bool IsStatic { get; }
+        public List<Collider2D> Colliders { get; }
 
         public ColliderLayer(HitboxType hitboxType)
         {
-            colliders = new List<Collider2D>();
+            Colliders = new List<Collider2D>();
             Color = hitboxType.GetColor();
             Depth = hitboxType.GetDepth();
             Name = hitboxType.GetName();
+            MinShowLevel = hitboxType.GetMinShowLevel();
+            IsStatic = hitboxType.GetIsStatic();
         }
 
         public void AddCollider(Collider2D collider)
         {
-            colliders.Add(collider);
+            Colliders.Add(collider);
         }
 
-        public IEnumerator<Collider2D> GetEnumerator()
+        public virtual IEnumerator<List<Vector2>> GetEnumerator()
         {
-            return colliders.Where(col => col != null && col.isActiveAndEnabled).GetEnumerator();
+            return Colliders
+                .Where(col => col != null && col.isActiveAndEnabled)
+                .Select(col => ColliderPaths.GetColliderWorldPath(col, true))
+                .GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return colliders.Where(col => col != null && col.isActiveAndEnabled).GetEnumerator();
+            return Colliders
+                .Where(col => col != null && col.isActiveAndEnabled)
+                .Select(col => ColliderPaths.GetColliderWorldPath(col, true))
+                .GetEnumerator();
+        }
+
+        public static ColliderLayer From(HitboxType hitboxType, 
+            IEnumerable<ColliderLayer> previousLayers)
+        {
+            return hitboxType.GetIsStatic() switch
+            {
+                false => new ColliderLayer(hitboxType),
+                true => new StaticColliderLayer(hitboxType, previousLayers)
+            };
         }
     }
 }

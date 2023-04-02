@@ -20,7 +20,7 @@ namespace Ariadne
 		 Enemy,
 		[HBDescriptor(name: "Attack", color: ColorType.Cyan)]
 		 Attack,
-		[HBDescriptor(name: "Terrain", color: ColorType.White)]
+		[HBDescriptor(name: "Terrain", color: ColorType.White, isStatic: true, isUnion: true)]
 		 Terrain,
 		[HBDescriptor(name: "Trigger", color: ColorType.Blue)]
 		 Trigger,
@@ -38,7 +38,7 @@ namespace Ariadne
 		 Bench,
 		[HBDescriptor(name: "HazardRespawn", color: ColorType.Purple)]
 		 HazardRespawn,
-		[HBDescriptor(name: "Other", color: ColorType.Orange)]
+		[HBDescriptor(name: "Other", color: ColorType.Orange, minShowLevel: ShowHitbox.Verbose)]
 		 Other,
 		[HBDescriptor(name: "GeoStore", color: ColorType.Yellowish)]
 		 GeoStore,
@@ -62,7 +62,8 @@ namespace Ariadne
 		 HotSpring,
 		[HBDescriptor(name: "Upgrade", color: ColorType.Pinkish)]
 		 Upgrade,
-		[HBDescriptor(name: "StaticHazard", color: ColorType.Orangish)]
+		[HBDescriptor(name: "StaticHazard", color: ColorType.Orangish, 
+			isStatic: true, isUnion: true, isIntersection: true)]
 		 StaticHazard,
 		[HBDescriptor(name: "NPC", color: ColorType.Purplish)]
 		 NPC,
@@ -82,11 +83,23 @@ namespace Ariadne
         public string Name { get; }
 
         public Color Color { get; }
+        public bool IsStatic { get; }
+        public bool IsUnion { get; }
+        public bool IsIntersection { get; }
+        public ShowHitbox MinShowLevel { get; }
 
-        public HBDescriptorAttribute(string name, ColorType color)
+        public HBDescriptorAttribute(string name, ColorType color, 
+			bool isStatic = false,
+			bool isUnion = false,
+			bool isIntersection = false,
+			ShowHitbox minShowLevel = ShowHitbox.Show)
         {
             Name = name;
             Color = color.GetColor();
+			IsStatic = isStatic;
+			IsUnion = isUnion;
+			IsIntersection = isIntersection;
+			MinShowLevel = minShowLevel;
         }
     }
 
@@ -123,6 +136,26 @@ namespace Ariadne
         public static int GetDepth(this HitboxType hitboxType)
         {
             return 3;
+        }
+
+        public static bool GetIsStatic(this HitboxType hitboxType)
+        {
+            return prefetchedDescriptors[(int)hitboxType].IsStatic;
+        }
+
+        public static bool GetIsUnion(this HitboxType hitboxType)
+        {
+            return prefetchedDescriptors[(int)hitboxType].IsUnion;
+        }
+
+        public static bool GetIsIntersection(this HitboxType hitboxType)
+        {
+            return prefetchedDescriptors[(int)hitboxType].IsIntersection;
+        }
+
+        public static ShowHitbox GetMinShowLevel(this HitboxType hitboxType)
+        {
+            return prefetchedDescriptors[(int)hitboxType].MinShowLevel;
         }
     }
 }

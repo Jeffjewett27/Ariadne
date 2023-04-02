@@ -36,28 +36,30 @@ namespace Ariadne
             GUI.depth = int.MaxValue;
             Camera camera = Camera.main;
             float lineWidth = LineWidth;
-            foreach (var pair in hitboxTracker.ColliderLayers)
+            foreach (var (hitboxType, colliderLayer) 
+                in hitboxTracker.ColliderLayers.Select(pair => (pair.Key, pair.Value)))
             {
-                if (pair.Key == HitboxType.Terrain
-                    || pair.Key == HitboxType.StaticHazard
-                    || (Ariadne.settings.ShowHitBoxes < ShowHitbox.Verbose 
-                        && pair.Key == HitboxType.Other)) 
+                //if (hitboxType == HitboxType.Terrain
+                //    || hitboxType == HitboxType.StaticHazard
+                //    || (Ariadne.settings.ShowHitBoxes < ShowHitbox.Verbose 
+                //        && hitboxType == HitboxType.Other)) 
+                if (Ariadne.settings.ShowHitBoxes < colliderLayer.MinShowLevel)
                     continue;
-                foreach (Collider2D collider2D in pair.Value)
+                foreach (var path in colliderLayer)
                 {
-                    DrawHitbox(camera, collider2D, pair.Key, lineWidth);
+                    DrawWorldPointSequence(path, camera, colliderLayer.Color, lineWidth);
                 }
             }
 
-            foreach (var path in hitboxTracker.terrainOutlines)
-            {
-                DrawWorldPointSequence(path, camera, HitboxType.Terrain.GetColor(), lineWidth);
-            }
+            //foreach (var path in hitboxTracker.terrainOutlines)
+            //{
+            //    DrawWorldPointSequence(path, camera, HitboxType.Terrain.GetColor(), lineWidth);
+            //}
 
-            foreach (var path in hitboxTracker.hazardOutlines)
-            {
-                DrawWorldPointSequence(path, camera, HitboxType.StaticHazard.GetColor(), lineWidth);
-            }
+            //foreach (var path in hitboxTracker.hazardOutlines)
+            //{
+            //    DrawWorldPointSequence(path, camera, HitboxType.StaticHazard.GetColor(), lineWidth);
+            //}
 
         }
 
