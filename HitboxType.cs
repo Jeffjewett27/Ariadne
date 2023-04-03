@@ -1,15 +1,14 @@
-﻿using MonoMod.RuntimeDetour;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Ariadne
 {
+	/// <summary>
+	/// The different categories of hitboxes to be tracked. Order matters to some extent:
+	/// - They are rendered in order
+	/// - Static layers intersect with lower layers
+	/// </summary>
     public enum HitboxType
     {
 		[HBDescriptor(name: "None", color: ColorType.Transparent)]
