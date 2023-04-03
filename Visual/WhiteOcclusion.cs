@@ -1,10 +1,9 @@
-﻿
-using Modding;
+﻿using Modding;
 using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace Ariadne
+namespace Ariadne.Visual
 {
     public class WhiteOcclusion : MonoBehaviour
     {

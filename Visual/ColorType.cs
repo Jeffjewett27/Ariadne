@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SocialPlatforms;
 using UnityStandardAssets.ImageEffects;
 
-namespace Ariadne
+namespace Ariadne.Visual
 {
     public enum ColorType
     {

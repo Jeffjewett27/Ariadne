@@ -330,6 +330,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exports\" />
+    <Folder Include="Logging\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Clipper2" Version="1.2.0" />

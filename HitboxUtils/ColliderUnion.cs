@@ -8,7 +8,7 @@ using Clipper2Lib;
 using static Ariadne.HitboxTracker;
 using System.Collections;
 
-namespace Ariadne
+namespace Ariadne.HitboxUtils
 {
     public class ColliderUnion
     {
@@ -117,13 +117,13 @@ namespace Ariadne
             shapes[parent] = union;
             shapes[child] = union;
         }
-        
+
         /// <summary>
         /// Creates union links between colliders that overlap or share edges
         /// </summary>
         public void UnionAllPaths()
         {
-            for (int i = 0; i < shapes.Count - 1;  i++)
+            for (int i = 0; i < shapes.Count - 1; i++)
             {
                 for (int j = i + 1; j < shapes.Count; j++)
                 {
@@ -131,8 +131,8 @@ namespace Ariadne
                     var shapeB = GetShape(j);
                     if (shapeA == shapeB) continue;
                     var intersection = Clipper.Intersect(
-                        Clipper.InflatePaths(shapeA, 0.01f, JoinType.Square, EndType.Polygon), 
-                        shapeB, 
+                        Clipper.InflatePaths(shapeA, 0.01f, JoinType.Square, EndType.Polygon),
+                        shapeB,
                         FillRule.NonZero
                     );
                     if (Clipper.Area(intersection) > 0)
@@ -146,7 +146,7 @@ namespace Ariadne
 
         public void ClipOverlap(ColliderUnion other)
         {
-            for (int i = 0; i < shapes.Count; i++ )
+            for (int i = 0; i < shapes.Count; i++)
             {
                 if (parent[i] != i) continue;
                 foreach (var tpath in other.GetDisjointShapes())

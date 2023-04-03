@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-namespace Ariadne
+namespace Ariadne.Visual
 {
     [RequireComponent(typeof(HitboxTracker))]
-    public class HitboxRenderer: MonoBehaviour
+    public class HitboxRenderer : MonoBehaviour
     {
-        public static float LineWidth => Math.Max(0.6f, 
+        public static float LineWidth => Math.Max(0.6f,
             Screen.width / 960f * GameCameras.instance.tk2dCam.ZoomFactor);
 
         private HitboxTracker hitboxTracker;
@@ -20,7 +20,7 @@ namespace Ariadne
 
         private void OnGUI()
         {
-            if (Event.current?.type != EventType.Repaint || Camera.main == null 
+            if (Event.current?.type != EventType.Repaint || Camera.main == null
                 || GameManager.instance == null || GameManager.instance.isPaused)
             {
                 return;
@@ -29,7 +29,7 @@ namespace Ariadne
             GUI.depth = int.MaxValue;
             Camera camera = Camera.main;
             float lineWidth = LineWidth;
-            foreach (var (hitboxType, colliderLayer) 
+            foreach (var (hitboxType, colliderLayer)
                 in hitboxTracker.ColliderLayers.Select(pair => (pair.Key, pair.Value)))
             {
                 if (Ariadne.settings.ShowHitBoxes < colliderLayer.MinShowLevel)
@@ -47,7 +47,7 @@ namespace Ariadne
             {
                 Vector2 pointA = camera.WorldToScreenPoint(points[i]);
                 pointA.y = Screen.height - pointA.y;
-                Vector2 pointB = camera.WorldToScreenPoint(points[i+1]);
+                Vector2 pointB = camera.WorldToScreenPoint(points[i + 1]);
                 pointB.y = Screen.height - pointB.y;
                 Drawing.DrawLine(pointA, pointB, color, lineWidth, true);
             }

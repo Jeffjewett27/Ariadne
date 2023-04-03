@@ -9,7 +9,7 @@ using static Ariadne.HitboxTracker;
 using System.IO;
 using UnityEngine.UIElements;
 
-namespace Ariadne
+namespace Ariadne.HitboxUtils
 {
     internal class ColliderPaths
     {
@@ -71,7 +71,7 @@ namespace Ariadne
                     path = circlePath.Select(p => (Vector2)circleCollider2D.transform.TransformPoint(p)).ToList();
                     break;
             }
-         
+
             return path;
         }
 

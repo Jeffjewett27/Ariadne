@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Ariadne
+namespace Ariadne.HitboxUtils
 {
     public class ColliderLayer : IEnumerable<List<Vector2>>
     {
@@ -45,7 +45,7 @@ namespace Ariadne
                 .GetEnumerator();
         }
 
-        public static ColliderLayer From(HitboxType hitboxType, 
+        public static ColliderLayer From(HitboxType hitboxType,
             IEnumerable<ColliderLayer> previousLayers)
         {
             return hitboxType.GetIsStatic() switch

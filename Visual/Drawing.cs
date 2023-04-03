@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using UnityEngine;
 
-namespace Ariadne
+namespace Ariadne.Visual
 {
     // Sourced from https://github.com/TheMulhima/HollowKnight.DebugMod
     //
@@ -127,7 +127,7 @@ namespace Ariadne
 
         public static void DrawCircle(Vector2 center, int radius, Color color, float width, bool antiAlias, int segmentsPerQuarter)
         {
-            float rh = (float)radius * 0.551915024494f;
+            float rh = radius * 0.551915024494f;
 
             Vector2 p1 = new Vector2(center.x, center.y - radius);
             Vector2 p1_tan_a = new Vector2(center.x - rh, center.y - radius);

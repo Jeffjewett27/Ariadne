@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Ariadne
+namespace Ariadne.HitboxUtils
 {
     public interface IColliderClassifier
     {
