@@ -29,6 +29,14 @@ namespace Ariadne.HitboxUtils
             Colliders.Add(collider);
         }
 
+        //public IEnumerable<KeyValuePair<Collider2D, List<Vector2>>> GetColliderMapping()
+        //{
+        //    return Colliders
+        //        .Where(col => col != null && col.isActiveAndEnabled)
+        //        .Select(col => new KeyValuePair<Collider2D, List<Vector2>>(col, 
+        //            ColliderPaths.GetColliderWorldPath(col, true)));
+        //}
+
         public virtual IEnumerator<List<Vector2>> GetEnumerator()
         {
             return Colliders

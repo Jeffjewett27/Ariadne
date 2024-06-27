@@ -1,24 +1,33 @@
 ﻿using Ariadne.Visual;
 using Modding;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UObject = UnityEngine.Object;
 
 namespace Ariadne
 {
-    public class Ariadne : Mod
+    public class Ariadne : Mod, IGlobalSettings<GlobalSettings>, ILocalSettings<SaveSettings>, ICustomMenuMod
     {
         public static Ariadne Instance;
 
         new public string GetName() => "Ariadne";
-        public override string GetVersion() => "v0.1";
+        public override string GetVersion() => "0.1";
 
 
         public static GlobalSettings settings { get; set; } = new GlobalSettings();
+        public void OnLoadGlobal(GlobalSettings s) => settings = s;
+        public GlobalSettings OnSaveGlobal() => settings;
+        public static SaveSettings saveSettings { get; set; } = new SaveSettings();
+        public void OnLoadLocal(SaveSettings s) {
+            saveSettings = s;
+            if (saveSettings.saveId == null || saveSettings.saveId.Length == 0)
+            {
+                saveSettings.saveId = Guid.NewGuid().ToString().Substring(0, 6);
+            }
+        }
+        public SaveSettings OnSaveLocal() => saveSettings;
 
         public HitboxTrackerManager TrackerManager { get; set; }
+
 
         public override void Initialize()
         {
@@ -63,6 +72,10 @@ namespace Ariadne
         {
             settings.DebugAB = !settings.DebugAB;
         }
+
+        public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates) =>
+            ModMenu.CreateMenuScreen(modListMenu);
+        public bool ToggleButtonInsideMenu => false;
 
     }
 }

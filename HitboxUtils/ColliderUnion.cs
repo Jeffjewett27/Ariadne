@@ -92,9 +92,33 @@ namespace Ariadne.HitboxUtils
             return disjointObjects;
         }
 
+        //private IEnumerable<KeyValuePair<Collider2D, List<List<Vector2>>>> GetRootColliders()
+        //{
+        //    var rootColliders = new List<KeyValuePair<Collider2D, List<List<Vector2>>>>();
+        //    for (int i = 0; i < parent.Length; i++)
+        //    {
+        //        if (parent[i] == i)
+        //        {
+        //            var keyValue = new KeyValuePair<Collider2D, List<List<Vector2>>>(colliders[i], 
+        //                ColliderPaths.PathsDToVectorPath(shapes[i]));
+        //            rootColliders.Add(keyValue);
+        //        }
+        //    }
+        //    return rootColliders;
+        //}
+
+        /// <summary>
+        /// Get a list of closed paths. Each path is a list of vector points that begins and ends with the same point
+        /// </summary>
+        /// <returns></returns>
         public List<List<Vector2>> GetDisjointPaths()
         {
             return GetDisjointShapes().SelectMany(ColliderPaths.PathsDToVectorPath).ToList();
+        }
+
+        public IEnumerable<List<List<Vector2>>> GetListOfShapesPaths()
+        {
+            return GetDisjointShapes().Select(ColliderPaths.PathsDToVectorPath);
         }
 
         /// <summary>
@@ -137,7 +161,7 @@ namespace Ariadne.HitboxUtils
                     );
                     if (Clipper.Area(intersection) > 0)
                     {
-                        Ariadne.MLog($"Intersection found between {colliders[i].name} and {colliders[j].name}");
+                        //Ariadne.MLog($"Intersection found between {colliders[i].name} and {colliders[j].name}");
                         Union(i, j);
                     }
                 }
@@ -158,7 +182,7 @@ namespace Ariadne.HitboxUtils
                         2);
                     if (Clipper.Area(diff) < 0.001)
                     {
-                        Ariadne.MLog($"Box completely removed: {shapes[i]}");
+                        //Ariadne.MLog($"Box completely removed: {shapes[i]}");
                     }
                     shapes[i] = diff;
                 }

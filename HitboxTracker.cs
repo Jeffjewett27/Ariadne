@@ -56,7 +56,7 @@ namespace Ariadne
             ClosestCollider = GetClosestCollider();
             if (ClosestCollider != null && oldClosest != ClosestCollider)
             {
-                Ariadne.MLog($"New closest collider: {ClosestCollider.name}");
+                //Ariadne.MLog($"New closest collider: {ClosestCollider.name}");
             }
         }
 

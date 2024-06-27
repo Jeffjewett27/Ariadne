@@ -83,9 +83,10 @@ namespace Ariadne.HitboxUtils
             {
                 if (Mathf.Abs((float)Clipper.Area(path)) < 0.01)
                 {
-                    Ariadne.MLog($"A path with {Clipper.Area(path)} area is being drawn");
+                    //Ariadne.MLog($"A path with {Clipper.Area(path)} area is being drawn");
                 }
                 var pathList = path.Select(p => new Vector2((float)p.x, (float)p.y)).ToList();
+                // ensure the path loops back to itself
                 if (pathList.Count > 0 && pathList[0] != pathList[pathList.Count - 1])
                 {
                     pathList.Add(pathList[0]);

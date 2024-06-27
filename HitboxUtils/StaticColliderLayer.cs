@@ -23,7 +23,7 @@ namespace Ariadne.HitboxUtils
             previousLayers = prevLayers
                 .Where(layer => layer.IsStatic && layer.Name != Name)
                 .Select(layer => (StaticColliderLayer)layer);
-            Ariadne.MLog($"Static layer {hitboxType.GetName()}: union {IsUnion}");
+            //Ariadne.MLog($"Static layer {hitboxType.GetName()}: union {IsUnion}");
         }
 
         public void UpdatePaths()
@@ -31,18 +31,24 @@ namespace Ariadne.HitboxUtils
             colliderUnion = new ColliderUnion(Colliders);
             if (IsUnion)
             {
-                Ariadne.MLog($"Layer {Name}: Unioning paths");
+                //Ariadne.MLog($"Layer {Name}: Unioning paths");
                 colliderUnion.UnionAllPaths();
             }
             if (IsIntersection)
             {
-                Ariadne.MLog($"Layer {Name}: Intersection");
+                //Ariadne.MLog($"Layer {Name}: Intersection");
                 foreach (var layer in previousLayers)
                 {
-                    Ariadne.MLog($"Layer {Name}: Intersecting {layer.Name}");
+                    //Ariadne.MLog($"Layer {Name}: Intersecting {layer.Name}");
                     colliderUnion.ClipOverlap(layer.colliderUnion);
                 }
             }
+        }
+
+        public IEnumerable<List<List<Vector2>>> GetShapesPaths()
+        {
+            if (colliderUnion is null) UpdatePaths();
+            return colliderUnion.GetListOfShapesPaths();
         }
 
         public override IEnumerator<List<Vector2>> GetEnumerator()
