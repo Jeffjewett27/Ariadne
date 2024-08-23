@@ -16,7 +16,7 @@ namespace Ariadne
         public static string DefaultLogFolder = Path.GetDirectoryName(
             System.Reflection.Assembly.GetCallingAssembly().Location).ToString();
 
-        public ShowHitbox ShowHitBoxes = ShowHitbox.VerboseLogs;
+        public ShowHitbox ShowHitBoxes = ShowHitbox.None;
 
         public bool TrackHitboxes = true;
 

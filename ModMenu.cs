@@ -27,6 +27,15 @@ namespace Ariadne
                             Ariadne.settings.LoggingActive = index == 0; //"yes" is the 0th index in the values array
                         },
                         loadSetting: () => Ariadne.settings.LoggingActive ? 0 : 1),
+                    new HorizontalOption(
+                         name: "Show Hitboxes",
+                        description: "Should show hitboxes?",
+                        values: new [] { "Yes", "No" },
+                        applySetting: index =>
+                        {
+                            Ariadne.settings.ShowHitBoxes = index == 0 ? ShowHitbox.VerboseLogs : ShowHitbox.None; //"yes" is the 0th index in the values array
+                        },
+                        loadSetting: () => Ariadne.settings.ShowHitBoxes == ShowHitbox.None ? 1 : 0),
                     new InputField(
                         name: "Log Folder",
                         _storeValue: val => Ariadne.settings.LogFolder = val,

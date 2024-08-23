@@ -70,7 +70,9 @@ namespace Ariadne.Logging
 
         public void LogUpdate()
         {
-            if (Camera.main == null || GameManager.instance == null || GameManager.instance.isPaused)
+            if (Camera.main == null || GameManager.instance == null
+                || GameManager.instance.isPaused || GameManager.instance.IsInSceneTransition
+                || GameManager.instance.inventoryFSM.ActiveStateName == "Opened")
             {
                 return;
             }
@@ -233,7 +235,6 @@ namespace Ariadne.Logging
         {
             var center = (Vector2)collider.transform.position + collider.offset;
             var extent = collider.bounds.extents; //TODO account for rotation
-
             var fsm = collider.transform.gameObject.GetComponent<PlayMakerFSM>();
             string fsmState = fsm?.ActiveStateName;
 
@@ -358,7 +359,7 @@ namespace Ariadne.Logging
             if (!Directory.Exists(logImageDir)) Directory.CreateDirectory(logImageDir);
 
             var filename = $"{GetLogIdentifier()}_{logCount}.png";
-            return Path.Combine(imageDir, filename);
+            return Path.Combine(logImageDir, filename);
         }
     }
 }

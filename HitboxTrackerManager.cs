@@ -1,4 +1,5 @@
 ﻿using Ariadne.Logging;
+using Ariadne.Socket;
 using Ariadne.Visual;
 using Modding;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace Ariadne
         public HitboxRenderer HitboxRenderer { get; private set; }
 
         public HitboxLogger HitboxLogger { get; private set; }
+        public LoggingSocket LoggingSocket { get; private set; }
 
         public void Load()
         {
@@ -52,6 +54,9 @@ namespace Ariadne
                     HitboxLogger = hitboxGO.AddComponent<HitboxLogger>();
                     Ariadne.Instance.Log($"Created HitboxTracker for scene {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
                 }
+
+                LoggingSocket = hitboxGO.AddComponent<LoggingSocket>();
+                Ariadne.MLog($"Created LoggingSocket for scene {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
             } else
             {
                 Ariadne.Instance.Log("Could not create HitboxTracker in non-gameplay scene");
