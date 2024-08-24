@@ -19,15 +19,6 @@ namespace Ariadne
                 new Element[]
                 {
                     new HorizontalOption(
-                         name: "Logging Active",
-                        description: "Should logging be enabled?",
-                        values: new [] { "Yes", "No" },
-                        applySetting: index =>
-                        {
-                            Ariadne.settings.LoggingActive = index == 0; //"yes" is the 0th index in the values array
-                        },
-                        loadSetting: () => Ariadne.settings.LoggingActive ? 0 : 1),
-                    new HorizontalOption(
                          name: "Show Hitboxes",
                         description: "Should show hitboxes?",
                         values: new [] { "Yes", "No" },
@@ -36,6 +27,15 @@ namespace Ariadne
                             Ariadne.settings.ShowHitBoxes = index == 0 ? ShowHitbox.VerboseLogs : ShowHitbox.None; //"yes" is the 0th index in the values array
                         },
                         loadSetting: () => Ariadne.settings.ShowHitBoxes == ShowHitbox.None ? 1 : 0),
+                    new HorizontalOption(
+                         name: "Logging Active",
+                        description: "Should logging be enabled?",
+                        values: new [] { "Yes", "No" },
+                        applySetting: index =>
+                        {
+                            Ariadne.settings.LoggingActive = index == 0; //"yes" is the 0th index in the values array
+                        },
+                        loadSetting: () => Ariadne.settings.LoggingActive ? 0 : 1),
                     new InputField(
                         name: "Log Folder",
                         _storeValue: val => Ariadne.settings.LogFolder = val,
@@ -57,6 +57,52 @@ namespace Ariadne
                         _storeValue: val => Ariadne.settings.LoggingIntervalMS = int.TryParse(val, out intervalMs) ? intervalMs : 1000,
                         _loadValue: () => Ariadne.settings.LoggingIntervalMS.ToString(),
                         _placeholder: "Path to log folder",
+                        _characterLimit: 120,
+                        _config: new Satchel.BetterMenus.Config.InputFieldConfig()
+                        {
+                            fontSize = 18,
+                            inputBoxWidth = 800f,
+                            contentType = UnityEngine.UI.InputField.ContentType.IntegerNumber,
+                            saveType = Satchel.BetterMenus.Config.InputFieldSaveType.EditEnd
+                        }
+                    ),
+                    new HorizontalOption(
+                         name: "Log Screenshots",
+                        description: "Should take screenshots alongside logs?",
+                        values: new [] { "Yes", "No" },
+                        applySetting: index =>
+                        {
+                            Ariadne.settings.CaptureScreenshots = index == 0; //"yes" is the 0th index in the values array
+                        },
+                        loadSetting: () => Ariadne.settings.CaptureScreenshots ? 0 : 1),
+                    new HorizontalOption(
+                         name: "Socket Active",
+                        description: "Should socket be enabled?",
+                        values: new [] { "Yes", "No" },
+                        applySetting: index =>
+                        {
+                            Ariadne.settings.SocketActive = index == 0; //"yes" is the 0th index in the values array
+                        },
+                        loadSetting: () => Ariadne.settings.SocketActive ? 0 : 1),
+                    new InputField(
+                        name: "Socket Port",
+                        _storeValue: val => Ariadne.settings.LoggingIntervalMS = int.TryParse(val, out intervalMs) ? intervalMs : Ariadne.settings.SocketPort,
+                        _loadValue: () => Ariadne.settings.LoggingIntervalMS.ToString(),
+                        _placeholder: "Path to log folder",
+                        _characterLimit: 5,
+                        _config: new Satchel.BetterMenus.Config.InputFieldConfig()
+                        {
+                            fontSize = 18,
+                            inputBoxWidth = 800f,
+                            contentType = UnityEngine.UI.InputField.ContentType.IntegerNumber,
+                            saveType = Satchel.BetterMenus.Config.InputFieldSaveType.EditEnd
+                        }
+                    ),
+                    new InputField(
+                        name: "Socket Interval (MS)",
+                        _storeValue: val => Ariadne.settings.LoggingIntervalMS = int.TryParse(val, out intervalMs) ? intervalMs : Ariadne.settings.LoggingIntervalMS,
+                        _loadValue: () => Ariadne.settings.LoggingIntervalMS.ToString(),
+                        _placeholder: "Milliseconds between socket send",
                         _characterLimit: 120,
                         _config: new Satchel.BetterMenus.Config.InputFieldConfig()
                         {

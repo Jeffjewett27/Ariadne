@@ -18,7 +18,7 @@ namespace Ariadne.Logging
 
         private void Start ()
         {
-            intervalMs = 1000f;
+            intervalMs = Ariadne.settings.SocketIntervalMS;
             lastUpdateTime = Time.realtimeSinceStartup * 1000;
             WebSocketServerManager.Instance.Open();
             camera = Camera.main;

@@ -31,7 +31,7 @@ namespace Ariadne.Socket
         {
             get
             {
-                instance ??= new WebSocketServerManager(8645);
+                instance ??= new WebSocketServerManager(Ariadne.settings.SocketPort);
                 return instance;
             }
         }

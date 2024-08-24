@@ -134,7 +134,10 @@ namespace Ariadne.Logging
             }
             LogCamera();
 
-            ScreenCapture.CaptureScreenshot(GetLogImagePath(timestep));
+            if (Ariadne.settings.CaptureScreenshots)
+            {
+                ScreenCapture.CaptureScreenshot(GetLogImagePath(timestep));
+            }
             logCounter++;
         }
 

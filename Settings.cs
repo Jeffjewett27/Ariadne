@@ -27,6 +27,14 @@ namespace Ariadne
         public string LogFolder = DefaultLogFolder;
 
         public int LoggingIntervalMS = 1000;
+
+        public bool CaptureScreenshots = true;
+
+        public bool SocketActive = false;
+
+        public int SocketPort = 8645;
+
+        public int SocketIntervalMS = 100;
     }
 
     public class SaveSettings
