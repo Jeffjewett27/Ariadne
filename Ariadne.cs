@@ -10,7 +10,7 @@ namespace Ariadne
         public static Ariadne Instance;
 
         new public string GetName() => "Ariadne";
-        public override string GetVersion() => "0.1";
+        public override string GetVersion() => "0.2";
 
 
         public static GlobalSettings settings { get; set; } = new GlobalSettings();
